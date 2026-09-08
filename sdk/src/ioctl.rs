@@ -182,3 +182,15 @@ pub const SDIO_CLKCR_WIDBUS_0: u32 = 1 << 11; /* WIDBUS=01（4-bit 总线） */
 
 /* ---- SD Card (drv/sd_card.c)：ioctl 仅初始化 ---- */
 pub const SD_CARD_IOCTL_INIT: i32 = 0x60; /* arg: none — SD 卡初始化序列 */
+
+/* ---- FSMC (drv/fsmc.h)：灵活静态存储器控制器 ---- */
+pub const FSMC_IOCTL_SET_BCR: i32 = 0x80;   /* arg: *const u32 BCR1 值 */
+pub const FSMC_IOCTL_GET_BCR: i32 = 0x81;   /* arg: *mut u32 BCR1 回读 */
+pub const FSMC_IOCTL_SET_BTR: i32 = 0x82;   /* arg: *const u32 BTR1 值 */
+pub const FSMC_IOCTL_GET_BTR: i32 = 0x83;   /* arg: *mut u32 BTR1 回读 */
+pub const FSMC_IOCTL_GET_BWTR: i32 = 0x84;  /* arg: *mut u32 BWTR1 回读 */
+pub const FSMC_IOCTL_BANK1_ENABLE: i32 = 0x85; /* arg: none — BCR1.MBKEN=1 */
+pub const FSMC_BCR_MBKEN: u32 = 1 << 0;     /* memory bank enable（窗口可用） */
+pub const FSMC_BCR_WREN: u32 = 1 << 12;     /* write enable */
+pub const FSMC_BCR_MTYP: u32 = 0x3 << 2;    /* memory type[1:0] */
+pub const FSMC_BCR_MWID: u32 = 0x3 << 4;    /* data bus width[1:0] */
