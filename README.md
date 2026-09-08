@@ -97,6 +97,6 @@ pub extern "C" fn app_main() -> i32 {
 系统启动 → App 分区发现（entry=0x080607A4）→ app_host 任务 → `rust_app_start`
 → **"RUST app mounted"** → demo 任务创建 → **"task started"** → 全部通过。
 
-> 已知限制：任务进入周期睡眠后，模拟器的 SysTick→PendSV 调度节拍存在高密度
-> 上下文切换问题（见 mcu_simulater CONTRIBUTING-run.md「未收敛」项），周期心跳
-> （alive/hb）日志在模拟器上暂不出现；真机/修掉该问题后即正常。
+> 已打通：任务进入周期睡眠后由 SysTick 周期唤醒（PendSV 高密度风暴已修复，
+> 见 mcu_simulater CONTRIBUTING-run.md §二.4）。模拟器上 demo 任务每虚拟秒打一条
+> `alive seq=`（x_jos_app / x_jos_hb 均已把心跳纳入回归断言）。
