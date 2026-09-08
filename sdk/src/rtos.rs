@@ -51,6 +51,15 @@ impl Semaphore {
         }
     }
 
+    /// 非阻塞尝试获取（0=成功取走一个计数；-1=暂无计数）。
+    #[inline]
+    pub fn trywait(&self) -> i32 {
+        match slot().sem_trywait {
+            Some(f) => f(&self.sem as *const rtos_sem_t as *mut rtos_sem_t),
+            None => -1,
+        }
+    }
+
     /// 投递事件（0→1；已为 1 则 no-op，密集事件合并）。
     #[inline]
     pub fn give(&self) {

@@ -15,6 +15,8 @@
 
 pub mod abi;
 pub mod device;
+pub mod ioctl;
+pub mod irq;
 pub mod log;
 pub mod rtos;
 

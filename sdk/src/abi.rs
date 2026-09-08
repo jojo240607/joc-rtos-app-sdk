@@ -187,3 +187,10 @@ extern "C" {
 pub fn slot() -> &'static app_slot_t {
     unsafe { &*core::ptr::addr_of!(g_app_slot) }
 }
+
+/// 取 g_app_slot 可变裸指针（内部使用；irq.rs 用它在 irq_reg[] 槽位登记 App ISR，
+/// 使 app_slot 侧的 irq_enable/irq_disable 能按 irq_id 找到回调）。
+#[inline]
+pub fn slot_mut() -> *mut app_slot_t {
+    core::ptr::addr_of_mut!(g_app_slot)
+}
