@@ -180,8 +180,19 @@ pub const SDIO_CLKCR_CLKDIV: u32 = 0xFF;    /* CLKDIV[7:0]（open 置 118） */
 pub const SDIO_CLKCR_CLKEN: u32 = 1 << 8;   /* 时钟使能（F4 为 bit8） */
 pub const SDIO_CLKCR_WIDBUS_0: u32 = 1 << 11; /* WIDBUS=01（4-bit 总线） */
 
-/* ---- SD Card (drv/sd_card.c)：ioctl 仅初始化 ---- */
+/* ---- SD Card (drv/sd_card.c)：初始化 + 块读写 ---- */
 pub const SD_CARD_IOCTL_INIT: i32 = 0x60; /* arg: none — SD 卡初始化序列 */
+pub const SD_CARD_IOCTL_READ_BLOCK: i32 = 0x61;  /* arg: *mut SdBlockIo — 读扇区 */
+pub const SD_CARD_IOCTL_WRITE_BLOCK: i32 = 0x62; /* arg: *mut SdBlockIo — 写扇区 */
+
+/// SD 卡块读写参数（与 hal/drv 的 sd_block_io_t 布局一致，repr(C)）
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct SdBlockIo {
+    pub lba: u64,      /* 起始扇区（512B 块） */
+    pub count: u32,    /* 扇区数（1 = 单块 CMD17/24） */
+    pub buf: *mut u8,  /* 数据缓冲（count*512 字节） */
+}
 
 /* ---- FSMC (drv/fsmc.h)：灵活静态存储器控制器 ---- */
 pub const FSMC_IOCTL_SET_BCR: i32 = 0x80;   /* arg: *const u32 BCR1 值 */
