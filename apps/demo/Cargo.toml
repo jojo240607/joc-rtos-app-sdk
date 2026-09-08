@@ -1,0 +1,14 @@
+[package]
+name = "demo-app"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "jOS RTOS 最小示例应用：经 rtos-app-sdk 创建周期任务并打日志（不依赖任何外设/第三方库）"
+
+[lib]
+# 最终产物 libdemo_app.a；由 build_app.py 用 linker/app.ld 链接成 app.bin。
+crate-type = ["staticlib"]
+
+[dependencies]
+rtos-app-sdk = { path = "../../sdk" }

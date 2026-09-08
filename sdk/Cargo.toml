@@ -1,0 +1,11 @@
+[package]
+name = "rtos-app-sdk"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "jOS RTOS 应用层 SDK：ABI 绑定 / 任务 / 设备 / 日志 / 挂载自举（中间工程）"
+
+[lib]
+# rlib：作为普通依赖被各 App 集成；staticlib：也可单独产出供 C 侧链入。
+crate-type = ["rlib", "staticlib"]
