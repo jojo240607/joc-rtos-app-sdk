@@ -111,3 +111,74 @@ pub const USB_IOCTL_TX_FREE: i32 = 0xDB;
 pub const USB_IOCTL_TX_PUMP: i32 = 0xDC;
 pub const USB_IOCTL_RX_REARM: i32 = 0xDD;
 pub const USB_IOCTL_REENUM: i32 = 0xDE;
+
+/* ---- CAN (drv/can.h) ---- */
+pub const CAN_IOCTL_SEND_FRAME: i32 = 0x01; /* arg: *mut can_frame_t（发一帧） */
+pub const CAN_IOCTL_RECV_FRAME: i32 = 0x02; /* arg: *mut can_frame_t（收一帧） */
+pub const CAN_IOCTL_GET_MCR: i32 = 0x03;    /* arg: *mut u32 CAN_MCR */
+pub const CAN_IOCTL_GET_BTR: i32 = 0x04;    /* arg: *mut u32 CAN_BTR (LBKM/SILM/timing) */
+pub const CAN_IOCTL_GET_MSR: i32 = 0x05;    /* arg: *mut u32 CAN_MSR */
+pub const CAN_IOCTL_GET_ESR: i32 = 0x06;    /* arg: *mut u32 CAN_ESR */
+pub const CAN_IOCTL_GET_TSR: i32 = 0x07;    /* arg: *mut u32 CAN_TSR */
+pub const CAN_IOCTL_GET_RF0R: i32 = 0x08;   /* arg: *mut u32 CAN_RF0R */
+pub const CAN_IOCTL_GET_FA1R: i32 = 0x09;   /* arg: *mut u32 CAN_FA1R */
+pub const CAN_IOCTL_GET_FMR: i32 = 0x0A;    /* arg: *mut u32 CAN_FMR */
+pub const CAN_BTR_LBKM: u32 = 1 << 30;      /* 回环模式（自测）；SILM=bit31（F407 CAN_BTR） */
+
+/// CAN 单帧（与 hal/stm32/can_hal.h 的 can_frame_t 布局一致，repr(C)）
+#[repr(C)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct CanFrame {
+    pub id: u32,      /* 11 位标准 / 29 位扩展 ID */
+    pub ext: u8,      /* 1 = 扩展 29 位 */
+    pub rtr: u8,      /* 1 = 远程帧（无数据） */
+    pub dlc: u8,      /* 数据长度 0..8 */
+    pub data: [u8; 8],
+}
+
+/* ---- FLASH (drv/flash.h)：受管扇区管理器 ---- */
+pub const FLASH_IOCTL_GET_SECTOR: i32 = 0x70; /* arg: *mut u32 受管扇区号 */
+pub const FLASH_IOCTL_GET_BASE: i32 = 0x71;   /* arg: *mut u32 扇区基址 */
+pub const FLASH_IOCTL_GET_STATUS: i32 = 0x72; /* arg: *mut u32 原始 FLASH->SR */
+pub const FLASH_SR_BSY: u32 = 1 << 16;        /* 忙标志 */
+
+/* ---- IWDG (drv/iwdg.h) ---- */
+pub const IWDG_IOCTL_SET_PRESCALER: i32 = 0x60; /* arg: *const u32 (0..7) */
+pub const IWDG_IOCTL_SET_RELOAD: i32 = 0x61;    /* arg: *const u32 (0..4095) */
+pub const IWDG_IOCTL_GET_PRESCALER: i32 = 0x62; /* arg: *mut u32 */
+pub const IWDG_IOCTL_GET_RELOAD: i32 = 0x63;    /* arg: *mut u32 */
+pub const IWDG_IOCTL_START: i32 = 0x64;         /* arg: none — ARM（喂狗前会复位） */
+pub const IWDG_IOCTL_REFRESH: i32 = 0x65;       /* arg: none — 喂狗 */
+pub const IWDG_IOCTL_GET_STATUS: i32 = 0x66;    /* arg: *mut u32 原始 SR */
+
+/* ---- WWDG (drv/wwdg.h) ---- */
+pub const WWDG_IOCTL_SET_PRESCALER: i32 = 0x60; /* arg: *const u32 (WDGTB 0..3) */
+pub const WWDG_IOCTL_SET_WINDOW: i32 = 0x61;    /* arg: *const u32 (0x40..0x7F) */
+pub const WWDG_IOCTL_GET_CONFIG: i32 = 0x62;    /* arg: *mut u32 原始 CFR */
+pub const WWDG_IOCTL_START: i32 = 0x63;         /* arg: *const u32 (reload 0x40..0x7F) */
+pub const WWDG_IOCTL_REFRESH: i32 = 0x64;       /* arg: *const u32 (reload > window) */
+pub const WWDG_IOCTL_GET_COUNTER: i32 = 0x65;   /* arg: *mut u32 原始 CR.T */
+pub const WWDG_IOCTL_GET_STATUS: i32 = 0x66;    /* arg: *mut u32 原始 SR */
+
+/* ---- I2S (drv/i2s.h)：i2s0 = I2S2 主机 TX（无外部 codec） ---- */
+pub const I2S_IOCTL_GET_I2SCFGR: i32 = 0x01;  /* arg: *mut u32 */
+pub const I2S_IOCTL_GET_I2SPR: i32 = 0x02;    /* arg: *mut u32 */
+pub const I2S_IOCTL_GET_PLLI2S: i32 = 0x03;   /* arg: *mut u32 RCC_PLLI2SCFGR */
+pub const I2S_IOCTL_GET_CFGR: i32 = 0x04;     /* arg: *mut u32 RCC_CFGR (I2SSRC) */
+pub const I2S_IOCTL_GET_PLL_RDY: i32 = 0x05;  /* arg: *mut u32 1=PLLI2SRDY */
+pub const I2S_IOCTL_GET_AUDIO_HZ: i32 = 0x06; /* arg: *mut u32 请求采样率 */
+pub const I2S_IOCTL_GET_I2S_CLK: i32 = 0x07;  /* arg: *mut u32 PLLI2S 输出 Hz */
+pub const I2S_I2SCFGR_I2SE: u32 = 1 << 10;    /* I2S 使能位 */
+
+/* ---- SDIO (drv/sdio.h) ---- */
+pub const SDIO_IOCTL_CMD: i32 = 0x50;        /* arg: *mut sdio_cmd_t（无数据） */
+pub const SDIO_IOCTL_CMD_DATA: i32 = 0x51;   /* arg: *mut sdio_cmd_data_t */
+pub const SDIO_IOCTL_SET_CLOCK: i32 = 0x52;  /* arg: *const u32 clkdiv */
+pub const SDIO_IOCTL_GET_POWER: i32 = 0x54;  /* arg: *mut u32 */
+pub const SDIO_IOCTL_GET_CLKCR: i32 = 0x55;  /* arg: *mut u32 */
+pub const SDIO_CLKCR_CLKDIV: u32 = 0xFF;    /* CLKDIV[7:0]（open 置 118） */
+pub const SDIO_CLKCR_CLKEN: u32 = 1 << 8;   /* 时钟使能（F4 为 bit8） */
+pub const SDIO_CLKCR_WIDBUS_0: u32 = 1 << 11; /* WIDBUS=01（4-bit 总线） */
+
+/* ---- SD Card (drv/sd_card.c)：ioctl 仅初始化 ---- */
+pub const SD_CARD_IOCTL_INIT: i32 = 0x60; /* arg: none — SD 卡初始化序列 */
