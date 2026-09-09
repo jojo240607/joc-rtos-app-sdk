@@ -62,6 +62,35 @@ pub const TEMP_IOCTL_SET_VREF_MV: i32 = 0x02; /* arg: *const u32 */
 pub const TEMP_IOCTL_GET_CAL1: i32 = 0x03;    /* arg: *mut u16 */
 pub const TEMP_IOCTL_GET_CAL2: i32 = 0x04;    /* arg: *mut u16 */
 
+/* ---- BMI088 IMU (drv/bmi088.h)：SPI 双片选六轴，device read=12B raw（accel6+gyro6 LE） ---- */
+pub const BMI088_IOCTL_GET_WHO: i32 = 0x01; /* arg: *mut Bmi088Who  — 两芯片 WHO_AM_I */
+pub const BMI088_IOCTL_GET_RAW: i32 = 0x02; /* arg: *mut Bmi088Raw  — 原始 16bit 计数值 */
+pub const BMI088_IOCTL_GET_SI: i32 = 0x03;  /* arg: *mut Bmi088Si   — 换算 SI：accel m/s²、gyro rad/s */
+
+/// BMI088 WHO_AM_I 回读（与 drv/bmi088.h bmi088_who_t 布局一致，repr(C)）
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Bmi088Who {
+    pub accel: u8,
+    pub gyro: u8,
+}
+
+/// BMI088 原始计数值（±3g: 10920 LSB/g；±2000dps: 16.4 LSB/dps）
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct Bmi088Raw {
+    pub accel: [i16; 3], /* X/Y/Z */
+    pub gyro: [i16; 3],
+}
+
+/// BMI088 换算 SI（悬停：accel.z≈+9.81 m/s²、gyro≈0）
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct Bmi088Si {
+    pub accel: [f32; 3],
+    pub gyro: [f32; 3],
+}
+
 /* ---- Timer (drv/timer.h) ---- */
 pub const TIMER_IOCTL_GET_OVERFLOWS: i32 = 0x01;  /* arg: *mut u32 */
 pub const TIMER_IOCTL_GET_COUNTER: i32 = 0x02;    /* arg: *mut u32 */
