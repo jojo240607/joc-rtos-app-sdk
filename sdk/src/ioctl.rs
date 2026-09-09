@@ -237,3 +237,18 @@ pub const FSMC_BCR_MBKEN: u32 = 1 << 0;     /* memory bank enable（窗口可用
 pub const FSMC_BCR_WREN: u32 = 1 << 12;     /* write enable */
 pub const FSMC_BCR_MTYP: u32 = 0x3 << 2;    /* memory type[1:0] */
 pub const FSMC_BCR_MWID: u32 = 0x3 << 4;    /* data bus width[1:0] */
+
+/* ---- SPI NOR Flash (drv/spi_flash.h)：W25Q 类保存/存储，命令流 + 3B 地址 ---- */
+pub const FLASH_IOCTL_GET_JEDEC: i32 = 0x01; /* arg: *mut u32 — 3B JEDEC ID（大端 u24，如 0xEF4018） */
+pub const FLASH_IOCTL_READ: i32 = 0x02;      /* arg: *mut FlashIo — 读 len 字节 */
+pub const FLASH_IOCTL_WRITE: i32 = 0x03;     /* arg: *const FlashIo — 页编程写（≤256B，页内回绕） */
+pub const FLASH_IOCTL_ERASE_SECTOR: i32 = 0x04; /* arg: *const u32 — 扇区擦除 4KB */
+
+/// SPI NOR Flash 读写参数（与 drv/spi_flash.h flash_io_t 布局一致，repr(C)）
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct FlashIo {
+    pub addr: u32,  /* 24bit 偏移 */
+    pub len: u16,   /* 字节数 */
+    pub buf: *mut u8, /* 数据指针 */
+}
