@@ -23,6 +23,9 @@ pub const UART_IOCTL_SET_BAUDRATE: i32 = 0x01; /* arg: *const u32 baud */
 pub const UART_IOCTL_GET_BAUDRATE: i32 = 0x02; /* arg: *mut u32 baud */
 pub const UART_IOCTL_GET_BRR: i32 = 0x03;      /* arg: *mut u32 BRR */
 pub const UART_IOCTL_SET_FRAMING: i32 = 0x05;  /* arg: *const uart_frame_t */
+pub const UART_IOCTL_SET_INVERTED: i32 = 0x07; /* arg: *const u32（位0=RX 反相、位1=TX 反相） */
+pub const UART_IOCTL_SET_PARITY: i32 = 0x08;   /* arg: *const u32（0/1/2=无/奇/偶） */
+pub const UART_IOCTL_SET_STOPBITS: i32 = 0x09; /* arg: *const u32（1/2） */
 
 /* ---- GPIO pin (drv/gpio_pin.h) ---- */
 pub const GPIO_IOCTL_TOGGLE: i32 = 0x01; /* arg: NULL */

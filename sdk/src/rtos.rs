@@ -7,9 +7,7 @@
 use core::ffi::{c_char, c_void};
 use core::ptr::null_mut;
 
-use crate::abi::{
-    slot, rtos_sem_t, rtos_task_attr_t, rtos_task_entry_t, RTOS_RT_NONE,
-};
+use crate::abi::{slot, rtos_sem_t, rtos_task_attr_t, rtos_task_entry_t};
 
 /* ===========================================================================
  * 事件信号量（计数初值 0、上限 1）
@@ -67,6 +65,11 @@ impl Semaphore {
             f(&self.sem as *const rtos_sem_t as *mut rtos_sem_t);
         }
     }
+
+    /// 诊断：返回当前计数（确认 init 生效）。
+    pub fn debug_count(&self) -> u32 {
+        unsafe { (*core::ptr::addr_of!(self.sem)).count }
+    }
 }
 
 /* ===========================================================================
@@ -116,6 +119,11 @@ impl Mutex {
     pub fn guard(&self) -> MutexGuard<'_> {
         self.lock();
         MutexGuard { m: self }
+    }
+
+    /// 诊断：返回当前 sem 计数（确认 init 是否生效；init 成功后应为 1）。
+    pub fn debug_count(&self) -> u32 {
+        unsafe { (*core::ptr::addr_of!(self.sem)).count }
     }
 }
 
@@ -216,4 +224,7 @@ pub fn spawn(
 }
 
 // 导出常用常量，方便 App 侧直接 `use rtos_app_sdk::rtos::*`。
-pub use crate::abi::{RTOS_PRIO_BH_HIGH, RTOS_PRIO_BH_MED, RTOS_PRIO_BLINK, RTOS_PRIO_IDLE, RTOS_PRIO_MAIN};
+pub use crate::abi::{
+    RTOS_PRIO_BH_HIGH, RTOS_PRIO_BH_MED, RTOS_PRIO_BLINK, RTOS_PRIO_IDLE, RTOS_PRIO_MAIN,
+    RTOS_RT_HARD, RTOS_RT_NONE, RTOS_RT_SOFT,
+};

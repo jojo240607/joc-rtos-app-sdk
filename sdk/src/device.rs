@@ -1,9 +1,12 @@
 //! RTOS 设备抽象层：安全封装 `g_app_slot.dev_*` vtable。
 //! App 经此访问系统已注册的驱动（uart0/usb0/adc0/...），不碰裸寄存器。
+//! 另含总线传输辅助（`I2cXfer`/`SpiXfer`/`i2c_write_read`），供传感器驱动组合
+//! I2C/SPI 事务（布局对齐 RTOS `drv/i2c.h` / `drv/spi.h`）。
 
 use core::ffi::{c_char, c_void};
 
 use crate::abi::{device_t, slot};
+use crate::ioctl;
 
 /// 设备句柄（opaque `device_t*`）。
 ///
@@ -112,4 +115,45 @@ impl Device {
             }
         }
     }
+}
+
+/* ===========================================================================
+ * 总线传输辅助（I2C / SPI）
+ * ========================================================================= */
+
+/// I2C 传输描述符：布局须与 RTOS `drv/i2c.h` 的 `i2c_xfer_t` 一致。
+#[repr(C)]
+pub struct I2cXfer {
+    pub addr: u16,    // 7-bit 从机地址
+    pub buf: *mut u8, // 数据缓冲
+    pub len: u16,
+    pub result: i32, // OUT: 0=ACK, -1=NACK/timeout
+}
+
+/// SPI 传输描述符：布局须与 RTOS `drv/spi.h` 的 `spi_xfer_t` 一致。
+#[repr(C)]
+pub struct SpiXfer {
+    pub tx_buf: *const u8, // NULL = 发 0xFF
+    pub rx_buf: *mut u8,   // NULL = 丢弃
+    pub len: u16,
+}
+
+/// I2C 写单个寄存器后读 N 字节（标准 sensor 事务）。
+///
+/// 调用方需保证 `buf` 生命周期覆盖两次 ioctl，且 `dev` 已 open。
+pub fn i2c_write_read(dev: &Device, addr: u16, reg: u8, buf: &mut [u8]) -> i32 {
+    // 1) 写寄存器地址
+    let mut tx = [reg];
+    let mut w = I2cXfer { addr, buf: tx.as_mut_ptr(), len: 1, result: 0 };
+    let r = dev.ioctl(ioctl::I2C_IOCTL_MASTER_WRITE, &mut w as *mut I2cXfer as *mut c_void);
+    if r != 0 || w.result != 0 {
+        return -1;
+    }
+    // 2) 读数据
+    let mut rd = I2cXfer { addr, buf: buf.as_mut_ptr(), len: buf.len() as u16, result: 0 };
+    let r = dev.ioctl(ioctl::I2C_IOCTL_MASTER_READ, &mut rd as *mut I2cXfer as *mut c_void);
+    if r != 0 || rd.result != 0 {
+        return -1;
+    }
+    0
 }

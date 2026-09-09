@@ -6,10 +6,9 @@
 
 ## 为什么需要它
 
-- joc-app-rust（飞控应用）目前**不完整**：依赖 `mavlink-core` 仓库（未克隆、GitHub 私有/不存在），
-  无法独立构建。
-- 本 SDK 复刻 joc-app-rust 已验证的 ABI 挂载链路（`g_app_slot` 服务表 + app.ld 分区头部 +
-  系统自举），把它做成**可复用中间工程**：
+- 旧 joc-app-rust 独立工程已废弃（飞控业务迁入 flyctrl/app，直接依赖本 SDK 编译）。
+- 本 SDK 承载已验证的 ABI 挂载链路（`g_app_slot` 服务表 + app.ld 分区头部 + 系统自举），
+  做成**可复用中间工程**：
   - SDK 负责一切样板：入口 `rust_app_start`（.data 自拷贝 + 版本校验 + 挂载自报）、
     ABI 绑定、任务创建、设备访问、日志、panic 处理；
   - 具体应用只写业务：`app_main()` 里拉起自己的 RTOS 任务。
