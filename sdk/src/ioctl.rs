@@ -255,3 +255,23 @@ pub struct FlashIo {
 
 /* ---- DShot 电调数字协议 (drv/dshot.h)：GPIO bit-bang 发送 ---- */
 pub const DSHOT_IOCTL_SEND: i32 = 0x01; /* arg: *const u16 — 油门 0..1999（满油门=1999，停机=0） */
+
+/* ---- PMW3901 光流传感器 (drv/pmw3901.h)：SPI，PixArt 光学流 ---- */
+pub const PMW3901_IOCTL_GET_PRODUCT_ID: i32 = 0x01; /* arg: *mut u8（0x49） */
+pub const PMW3901_IOCTL_GET_MOTION: i32 = 0x02;     /* arg: *mut Pwm3901Motion（一帧光流） */
+
+/// 一帧光流观测（与 drv/pmw3901.h pmw3901_motion_t 布局一致，repr(C)）
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct Pwm3901Motion {
+    pub dx: i16,        /* X 像素位移（8.8 定点：1.0px = 0x0100） */
+    pub dy: i16,        /* Y 像素位移 */
+    pub squal: u8,      /* 表面质量 0..169 */
+    pub motion: u8,     /* 0x02 寄存器原值（bit7=数据就绪） */
+}
+
+/* ---- VL53L1X ToF 激光测距 (drv/vl53l1x.h)：I2C 0x29，16 位寄存器地址 ---- */
+pub const VL53L1X_IOCTL_GET_WHO: i32 = 0x01;      /* arg: *mut u8（0xEA） */
+pub const VL53L1X_IOCTL_START_RANGE: i32 = 0x02;  /* arg: NULL — 启动一次测距 */
+pub const VL53L1X_IOCTL_GET_DISTANCE: i32 = 0x03; /* arg: *mut u16 mm */
+pub const VL53L1X_IOCTL_CLEAR_INT: i32 = 0x04;    /* arg: NULL — 清中断 */
