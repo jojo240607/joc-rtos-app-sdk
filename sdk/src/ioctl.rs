@@ -233,6 +233,17 @@ pub const FSMC_IOCTL_SET_BTR: i32 = 0x82;   /* arg: *const u32 BTR1 值 */
 pub const FSMC_IOCTL_GET_BTR: i32 = 0x83;   /* arg: *mut u32 BTR1 回读 */
 pub const FSMC_IOCTL_GET_BWTR: i32 = 0x84;  /* arg: *mut u32 BWTR1 回读 */
 pub const FSMC_IOCTL_BANK1_ENABLE: i32 = 0x85; /* arg: none — BCR1.MBKEN=1 */
+pub const FSMC_IOCTL_BANK2_ENABLE: i32 = 0x86;   /* arg: none — BCR2.MBKEN=1 */
+pub const FSMC_IOCTL_BANK2_WRITE32: i32 = 0x87;  /* arg: *const FsmcWin32 — Bank2 窗口写 */
+pub const FSMC_IOCTL_BANK2_READ32: i32 = 0x88;   /* arg: *mut FsmcWin32 — Bank2 窗口读 */
+
+/// Bank2 窗口 32 位访问描述符（与 drv/fsmc.h fsmc_win32_t 布局一致，repr(C)）
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct FsmcWin32 {
+    pub off: u32,
+    pub value: u32,
+}
 pub const FSMC_BCR_MBKEN: u32 = 1 << 0;     /* memory bank enable（窗口可用） */
 pub const FSMC_BCR_WREN: u32 = 1 << 12;     /* write enable */
 pub const FSMC_BCR_MTYP: u32 = 0x3 << 2;    /* memory type[1:0] */
@@ -275,3 +286,19 @@ pub const VL53L1X_IOCTL_GET_WHO: i32 = 0x01;      /* arg: *mut u8（0xEA） */
 pub const VL53L1X_IOCTL_START_RANGE: i32 = 0x02;  /* arg: NULL — 启动一次测距 */
 pub const VL53L1X_IOCTL_GET_DISTANCE: i32 = 0x03; /* arg: *mut u16 mm */
 pub const VL53L1X_IOCTL_CLEAR_INT: i32 = 0x04;    /* arg: NULL — 清中断 */
+
+/* ---- ST7789 LCD (drv/lcd_st7789.h)：FSMC 8080 并行接口，Bank1 NE1 ---- */
+pub const LCD_IOCTL_INIT: i32 = 0x01;   /* arg: NULL — 初始化序列 */
+pub const LCD_IOCTL_GET_ID: i32 = 0x02; /* arg: *mut u8（RDDID=0x85） */
+pub const LCD_IOCTL_FILL: i32 = 0x03;   /* arg: *const LcdFill — 窗口填充 */
+
+/// 窗口填充参数（与 drv/lcd_st7789.h lcd_fill_t 布局一致，repr(C)）
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct LcdFill {
+    pub x0: u16,
+    pub y0: u16,
+    pub x1: u16,
+    pub y1: u16,
+    pub color: u16, /* RGB565 */
+}
