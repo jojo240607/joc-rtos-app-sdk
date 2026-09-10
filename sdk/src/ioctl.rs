@@ -252,3 +252,6 @@ pub struct FlashIo {
     pub len: u16,   /* 字节数 */
     pub buf: *mut u8, /* 数据指针 */
 }
+
+/* ---- DShot 电调数字协议 (drv/dshot.h)：GPIO bit-bang 发送 ---- */
+pub const DSHOT_IOCTL_SEND: i32 = 0x01; /* arg: *const u16 — 油门 0..1999（满油门=1999，停机=0） */
