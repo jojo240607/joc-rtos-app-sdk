@@ -273,7 +273,13 @@ pub fn emit(level: u8, tag: &str, args: fmt::Arguments) {
     len += w.len;
 
     // 换行语义归一：ring 内只存 `\n`，由消费者(log_task)拼包时统一转 `\r\n`。
-    buf[len] = b'\n'; len += 1;
+    // 防御：fmt 恰好写满缓冲（len == buf.len()）时不再追加 `\n`——否则
+    // `buf[len]` 越界写 1 字节破坏栈（长日志行如 ctrl hb 19 参数触顶 180B
+    // 曾致固件在首个长日志处随机卡死/冻结）。截断即可，日志可丢。
+    if len < buf.len() {
+        buf[len] = b'\n';
+        len += 1;
+    }
 
     ring_push(level, &buf[..len]);
     unlock();
