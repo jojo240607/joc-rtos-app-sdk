@@ -71,14 +71,21 @@ SECTIONS
   } >APP_RAM AT> APP_FLASH
 
   /* ---- App 运行期 .bss（全零初值，如栈缓冲；系统加载器清零）---- */
+  /* 任务栈缓冲集中区（容量可调的一段） */
   .app_bss (NOLOAD) :
   {
     . = ALIGN(4);
     _sappbss = .;
-    /* 隔离 gap：.app_bss 的栈缓冲可能向下溢出，而 .app_data 恰在其下。
-     * 留 0x100 冗余区，即使任务栈意外溢出也不至于立刻踩坏 .app_data 全局。 */
+    /* 隔离 gap：栈缓冲可能向下溢出，而 .app_data 恰在其下。留 0x100 冗余区。 */
     . = . + 0x100;
     . = ALIGN(4);
+    *(.app_stacks)
+  } >APP_RAM
+
+  /* 测试可见全局：**固定 VMA**，使栈区容量调整不再移动全局地址
+   * （多个联调测试硬编码 EST_STATE/SENSOR_SEQ/… 的 .bss 地址）。 */
+  .app_globals 0x2000A000 (NOLOAD) :
+  {
     *(.rust_bss)
     *(.rust_bss.*)
     *(.bss)
