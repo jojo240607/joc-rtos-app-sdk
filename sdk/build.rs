@@ -5,7 +5,7 @@ use std::fs;
 use std::path::Path;
 
 /// Rust 侧声明的契约版本（改 C 侧 rtos_abi.h 的 RTOS_ABI_VERSION 时必须同步此处）。
-const RUST_ABI_VERSION: u32 = 1;
+const RUST_ABI_VERSION: u32 = 2;
 
 fn main() {
     // 从 abi/rtos_abi.h 提取 #define RTOS_ABI_VERSION N

@@ -32,7 +32,7 @@ SECTIONS
   .app_header :
   {
     LONG(0x41504800)                    /* magic: "APH\0" */
-    LONG(1)                             /* abi_version: MUST == RTOS_ABI_VERSION (joc-base) */
+    LONG(2)                             /* abi_version: MUST == RTOS_ABI_VERSION (joc-base) */
     LONG(ABSOLUTE(rust_app_start))      /* entry: App 入口绝对地址 */
     LONG(0)                             /* app_size: 占位（系统侧仅作日志，不强制校验） */
     LONG(0)                             /* reserved */
@@ -84,7 +84,7 @@ SECTIONS
 
   /* 测试可见全局：**固定 VMA**，使栈区容量调整不再移动全局地址
    * （多个联调测试硬编码 EST_STATE/SENSOR_SEQ/… 的 .bss 地址）。 */
-  .app_globals 0x2000A000 (NOLOAD) :
+  .app_globals 0x2000F000 (NOLOAD) :
   {
     *(.rust_bss)
     *(.rust_bss.*)
@@ -96,7 +96,7 @@ SECTIONS
   } >APP_RAM
 
   /* 测试可见的控制拍计数器（固定地址，供性能测量；不参与 .bss 布局） */
-  .app_ctrltick 0x2000F000 (NOLOAD) :
+  .app_ctrltick 0x2001F000 (NOLOAD) :
   {
     *(.app_ctrltick)
   } >APP_RAM

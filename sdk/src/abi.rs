@@ -75,7 +75,7 @@ pub struct rtos_event_t {
  * App 经 extern 引用，不可自行定义。
  * =========================================================================== */
 pub const APP_SLOT_MAGIC: u32 = 0x4150_5053; // "APPS"
-pub const APP_SLOT_VERSION: u32 = 1;
+pub const APP_SLOT_VERSION: u32 = 2;
 pub const APP_IRQ_REG_MAX: usize = 8;
 
 /* 中断类别（镜像 irq.h irq_class_t） */
@@ -113,7 +113,7 @@ pub struct device_t {
 }
 
 /* ABI 版本：与 C 侧 tools/abi/rtos_abi.h 的 RTOS_ABI_VERSION 对齐（build.rs 校验）。 */
-pub const RTOS_ABI_VERSION: u32 = 1;
+pub const RTOS_ABI_VERSION: u32 = 2;
 
 pub type app_slot_irq_attach_t = extern "C" fn(*const app_irq_reg_t) -> i32;
 
@@ -149,6 +149,7 @@ pub struct app_slot_t {
     pub msleep: Option<extern "C" fn(u32)>,
     pub tick_count: Option<extern "C" fn() -> u32>,
     pub cycle_now: Option<extern "C" fn() -> u32>,
+    pub delay_until: Option<extern "C" fn(*mut u32, u32)>,
 
     /* IPC 服务 */
     pub sem_init: Option<extern "C" fn(*mut rtos_sem_t, u32, u32)>,

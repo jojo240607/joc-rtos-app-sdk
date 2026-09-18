@@ -169,6 +169,19 @@ pub fn cycle_now() -> u32 {
     }
 }
 
+/// 经 g_app_slot 的 RTOS 绝对延时（FreeRTOS vTaskDelayUntil 语义）。
+///
+/// 睡到 `*last + inc_ticks` 时刻并推进 `*last`：内核把【目标时刻 − 当前时刻】
+/// 写进睡眠队列，tick ISR 在目标时刻直接 ready 本任务。因此无论任务自身执行
+/// 时间多长、被抢占多久，**周期恒定不漂移**（相对 msleep 的周期 = sleep + 执行）。
+/// 对需要积分的控制/EKF 任务，这是正确的周期语义。已超期则内核重同步，不长眠。
+#[inline]
+pub fn delay_until(last: &mut u32, inc_ticks: u32) {
+    if let Some(f) = slot().delay_until {
+        f(last as *mut u32, inc_ticks);
+    }
+}
+
 /// 创建并启动一个 RTOS 任务（经 g_app_slot 间接调用，App 独立链接安全）。
 ///
 /// - `name`：以 `\0` 结尾的 ASCII 名（内部自动补 0，传 "name" 即可）。
