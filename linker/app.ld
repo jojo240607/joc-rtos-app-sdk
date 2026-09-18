@@ -95,6 +95,12 @@ SECTIONS
     _eappbss = .;
   } >APP_RAM
 
+  /* 测试可见的控制拍计数器（固定地址，供性能测量；不参与 .bss 布局） */
+  .app_ctrltick 0x2000F000 (NOLOAD) :
+  {
+    *(.app_ctrltick)
+  } >APP_RAM
+
   /DISCARD/ :
   {
     *(.note .note.*)
