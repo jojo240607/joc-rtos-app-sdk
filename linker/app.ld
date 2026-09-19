@@ -101,6 +101,12 @@ SECTIONS
     *(.app_ctrltick)
   } >APP_RAM
 
+  /* step_hil 内部分段探针（固定地址，供性能测量；不参与 .bss 布局） */
+  .app_hilprobe 0x2001F100 (NOLOAD) :
+  {
+    *(.app_hilprobe)
+  } >APP_RAM
+
   /DISCARD/ :
   {
     *(.note .note.*)
