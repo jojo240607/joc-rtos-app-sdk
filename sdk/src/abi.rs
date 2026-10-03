@@ -146,7 +146,7 @@ pub struct device_t {
 }
 
 /* ABI 版本：与 C 侧 tools/abi/rtos_abi.h 的 RTOS_ABI_VERSION 对齐（build.rs 校验）。 */
-pub const RTOS_ABI_VERSION: u32 = 11;
+pub const RTOS_ABI_VERSION: u32 = 12;
 
 pub type app_slot_irq_attach_t = extern "C" fn(*const app_irq_reg_t) -> i32;
 
@@ -228,6 +228,8 @@ pub struct app_slot_t {
     pub work_submit_q: Option<extern "C" fn(u8, *mut rtos_work_t)>,
     /// ★design.md §5：注册周期 WorkItem（period_cycles=0 注销）。
     pub workq_add_periodic: Option<extern "C" fn(u8, *mut rtos_work_t, u32)>,
+    /// ★design.md §5：内核实测 cycles/ms（预算/耗时换算的唯一来源）。
+    pub cycles_per_ms: Option<extern "C" fn() -> u32>,
 
     /* ★design.md P2-3：软件定时器（"定时器→队列桥"）*/
     pub timer_init: Option<extern "C" fn(*mut rtos_timer_t, *const c_char, Option<rtos_timer_cb_t>, *mut c_void)>,
