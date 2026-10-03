@@ -299,13 +299,29 @@ static mut LOG_TASK_STACK: [u8; 4096] = [0u8; 4096];
 /// 靠近 idle(31)，即使阻塞在 uart0 也不影响业务。取 28。
 const LOG_TASK_PRIO: u8 = 28;
 
-extern "C" fn log_task_entry(_arg: *mut core::ffi::c_void) {
+/// ★design.md §6：把日志 ring 置为"消费者由外部驱动"模式（**不创建线程**）。
+/// 配合 [`drain_once`] 即可把日志消费变成 L3 WorkItem（"日志 事件驱动·可丢弃" ✓）。
+pub fn activate_ring_consumer() {
+    LOG_TASK_ACTIVE.store(true, Ordering::Release);
+}
+
+/// ★design.md §6：**L3 WorkItem 形态**的日志 drain —— 一次调用 = 一轮排空 + 冲刷。
+/// 与 [`spawn_log_task`] **二选一**（共用同一 ring 与非阻塞互斥 ✓，可安全切换）。
+pub fn drain_once() {
+    drain_pass();
+}
+
+/// 日志打包缓冲（线程形态与 item 形态共用 ✓）。
+static mut LOG_PKT: [u8; 512] = [0u8; 512];
+static mut LOG_PKT_LEN: usize = 0;
+
+/// 一轮排空 + 冲刷（`log_task_entry` 与 `drain_once` 的公共体）。
+fn drain_pass() {
     // uart0 复用 C 侧已打开的句柄；只 get + write，绝不 open/close。
     let uart = Device::get("uart0\0");
-    let mut pkt = [0u8; 512];
-    let mut pkt_len = 0usize;
-    loop {
-        let mut flushed = false;
+    unsafe {
+        let pkt = &mut *core::ptr::addr_of_mut!(LOG_PKT);
+        let mut pkt_len: usize = LOG_PKT_LEN;
         while let Some(dev) = uart.as_ref() {
             // 互斥地取走一条 `[len][level][payload]`（payload 末尾为 `\n`）。
             let entry = {
@@ -348,7 +364,6 @@ extern "C" fn log_task_entry(_arg: *mut core::ffi::c_void) {
             if i < payload.len() {
                 let _ = dev.write(&pkt[..pkt_len]);
                 pkt_len = 0;
-                flushed = true;
                 while i < payload.len() {
                     if payload[i] == b'\n' {
                         if pkt_len + 2 > pkt.len() {
@@ -371,7 +386,6 @@ extern "C" fn log_task_entry(_arg: *mut core::ffi::c_void) {
             if pkt_len + payload.len() + 2 > pkt.len() {
                 let _ = dev.write(&pkt[..pkt_len]);
                 pkt_len = 0;
-                flushed = true;
             }
         }
         if pkt_len > 0 {
@@ -379,11 +393,15 @@ extern "C" fn log_task_entry(_arg: *mut core::ffi::c_void) {
                 let _ = dev.write(&pkt[..pkt_len]);
             }
             pkt_len = 0;
-            flushed = true;
         }
-        if !flushed {
-            msleep(5); // 本轮什么都没发 → 节流睡眠
-        }
+        LOG_PKT_LEN = pkt_len;
+    }
+}
+
+extern "C" fn log_task_entry(_arg: *mut core::ffi::c_void) {
+    loop {
+        drain_pass();
+        msleep(5); // 节流：一轮排空后睡 5ms
     }
 }
 
