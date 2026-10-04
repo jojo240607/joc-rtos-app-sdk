@@ -89,6 +89,19 @@ fn write_u32(dst: &mut [u8], mut v: u32) -> usize {
 
 /// 把一条日志写到 uart0 控制台。`args` 由 `info!`/`warn!`/`error!` 宏传入。
 pub fn log(level: u8, tag: &str, args: fmt::Arguments<'_>) {
+    // ★★★修复（多线程日志撕裂）：本直写路径原先**无锁** ✗ —— 启动期 app_host / rate /
+    //   alloc / safety 等**多线程同时**经此路径写 uart0 ⇒ 字节级交织 ⇒ console 行被撕碎
+    //   （实测把 `pace:` 与 `L1 CPU budget exceeded:` 与 .rodata 串成一行 ✗，害得靠解析
+    //   console 的 M 场测例判 `tasks=false` ✗）。这里复用同一把**非阻塞**锁：拿不到即丢，
+    //   绝不阻塞（日志可丢，符合 design.md §4「L1 禁止阻塞」✓）。
+    if !try_lock() {
+        return;
+    }
+    log_locked(level, tag, args);
+    unlock();
+}
+
+fn log_locked(level: u8, tag: &str, args: fmt::Arguments<'_>) {
     // 输出格式：R/{L}/{tag}: {msg}\r\n
     let mut buf = [0u8; 256];
     let mut w = BufWriter::new(&mut buf);
@@ -112,6 +125,15 @@ pub fn log(level: u8, tag: &str, args: fmt::Arguments<'_>) {
 
 /// 直接输出一行原始日志（无 tag/前缀，如生命周期自报）。
 pub fn raw(level: u8, text: &str) {
+    // ★同 `log()`：直写路径须持非阻塞锁，否则多线程下交织 ✗（拿不到即丢）。
+    if !try_lock() {
+        return;
+    }
+    raw_locked(level, text);
+    unlock();
+}
+
+fn raw_locked(level: u8, text: &str) {
     let mut buf = [0u8; 256];
     let mut w = BufWriter::new(&mut buf);
     let _ = w.write_str(match level {
